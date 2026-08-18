@@ -33,8 +33,8 @@ As dependências seguem a direção `Api → Application`, `Infrastructure → A
 - API ASP.NET Core em .NET 8.
 - SQL Server com Entity Framework Core e migration inicial.
 - Swagger/OpenAPI.
-- Criação e consulta de pedidos.
-- Testes unitários do GET no controller e no service.
+- Criação, consulta, atualização e remoção de pedidos.
+- Testes unitários de POST, GET, PUT e DELETE no service e no controller, conforme cada caso de uso.
 - Retorno do GET compatível com o contrato solicitado.
 - Preço histórico por item de pedido.
 - Respostas de erro padronizadas com códigos HTTP apropriados.
@@ -238,12 +238,15 @@ Set-Location frontend\pedidos-web
 npm test
 ```
 
-Atualmente existem 7 testes unitários:
+Atualmente existem 15 testes unitários:
 
-- GET no `PedidoService`: pedido existente e inexistente.
-- GET no `PedidosController`: respostas 200 e 404 com `ProblemDetails`.
 - POST no `PedidoService`: criação válida, produto inexistente e produto duplicado.
-- Cenário explícito no qual `Produto.Valor` difere de `ItemPedido.ValorUnitario`, garantindo que o total utiliza o preço histórico.
+- GET no `PedidoService`: pedido existente, incluindo preço histórico e total, e pedido inexistente.
+- GET no `PedidosController`: respostas 200 e 404 com `ProblemDetails`.
+- PUT no `PedidoService`: atualização válida, preservação do preço histórico, preço atual para produto novo e entrada inválida sem persistência.
+- PUT no `PedidosController`: pedido inexistente retornando 404 com `ProblemDetails`.
+- DELETE no `PedidoService`: remoção de pedido existente.
+- DELETE no `PedidosController`: respostas 204 e 404 com `ProblemDetails`.
 
 Os testes usam mocks dos contratos necessários e não acessam SQL Server, EF Core InMemory ou `PedidosDbContext`.
 
@@ -257,7 +260,9 @@ O fluxo foi validado manualmente com:
 - GET de pedido existente retornando HTTP 200 e o contrato esperado;
 - GET de pedido inexistente retornando HTTP 404;
 - POST inválido retornando HTTP 400;
-- alteração posterior de `Produto.Valor` sem mudança em `ItemPedido.ValorUnitario` ou `ValorTotal` de um pedido existente.
+- alteração posterior de `Produto.Valor` sem mudança em `ItemPedido.ValorUnitario` ou `ValorTotal` de um pedido existente;
+- PUT de pedido existente contra o SQL Server real, preservando o `ValorUnitario` histórico dos produtos que já pertenciam ao pedido e usando o preço atual de `Produto` para produtos novos;
+- DELETE de pedido existente contra o SQL Server real, incluindo a remoção de seus `ItensPedido` por cascade.
 
 ## Escopo atual
 
