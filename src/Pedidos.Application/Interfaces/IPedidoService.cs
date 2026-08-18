@@ -12,4 +12,13 @@ public interface IPedidoService
     Task<PedidoResponse?> ObterPorIdAsync(
         int id,
         CancellationToken cancellationToken = default);
+
+    Task<PedidoResponse?> AtualizarAsync(
+        int id,
+        CriarPedidoRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> RemoverAsync(
+        int id,
+        CancellationToken cancellationToken = default);
 }

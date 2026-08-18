@@ -50,6 +50,18 @@ internal static class DomainEntityBuilder
         DefinirPropriedade(item, nameof(ItemPedido.Produto), produto);
     }
 
+    public static void MarcarItemComoPersistido(
+        Pedido pedido,
+        ItemPedido item,
+        Produto produto,
+        int itemId)
+    {
+        DefinirPropriedade(item, nameof(ItemPedido.Id), itemId);
+        DefinirPropriedade(item, nameof(ItemPedido.PedidoId), pedido.Id);
+        DefinirPropriedade(item, nameof(ItemPedido.Pedido), pedido);
+        DefinirPropriedade(item, nameof(ItemPedido.Produto), produto);
+    }
+
     private static void DefinirPropriedade<T>(T entidade, string nomePropriedade, object valor)
         where T : class
     {

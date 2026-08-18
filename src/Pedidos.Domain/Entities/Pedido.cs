@@ -36,6 +36,13 @@ public sealed class Pedido
 
     public decimal ValorTotal => _itensPedido.Sum(item => item.ValorUnitario * item.Quantidade);
 
+    public void AtualizarDados(string nomeCliente, string emailCliente, bool pago)
+    {
+        NomeCliente = ValidarTexto(nomeCliente, NomeClienteMaxLength, nameof(nomeCliente));
+        EmailCliente = ValidarTexto(emailCliente, EmailClienteMaxLength, nameof(emailCliente));
+        Pago = pago;
+    }
+
     public ItemPedido AdicionarItem(int produtoId, int quantidade, decimal valorUnitario)
     {
         var item = new ItemPedido(produtoId, quantidade, valorUnitario);

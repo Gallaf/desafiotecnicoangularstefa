@@ -25,4 +25,39 @@ public sealed class PedidoRepository(PedidosDbContext dbContext) : IPedidoReposi
             .ThenInclude(item => item.Produto)
             .SingleOrDefaultAsync(pedido => pedido.Id == id, cancellationToken);
     }
+
+    public Task<Pedido?> ObterParaAtualizacaoAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        return dbContext.Pedidos
+            .Include(pedido => pedido.ItensPedido)
+            .ThenInclude(item => item.Produto)
+            .SingleOrDefaultAsync(pedido => pedido.Id == id, cancellationToken);
+    }
+
+    public async Task AtualizarAsync(
+        Pedido pedido,
+        CancellationToken cancellationToken = default)
+    {
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<bool> RemoverAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var pedido = await dbContext.Pedidos
+            .SingleOrDefaultAsync(pedido => pedido.Id == id, cancellationToken);
+
+        if (pedido is null)
+        {
+            return false;
+        }
+
+        dbContext.Pedidos.Remove(pedido);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
 }

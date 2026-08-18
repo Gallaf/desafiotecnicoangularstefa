@@ -200,6 +200,25 @@ Response `200 OK`:
 
 Pedido inexistente retorna `404 Not Found` com `ProblemDetails`. Payload inválido ou regra de criação violada retorna `400 Bad Request`.
 
+### Atualizar pedido
+
+```http
+PUT /api/pedidos/{id}
+Content-Type: application/json
+```
+
+Atualiza `nomeCliente`, `emailCliente`, `pago` e `itens` usando a mesma estrutura de payload da criação. Retorna `200 OK` com o pedido atualizado ou `404 Not Found` quando o pedido não existe.
+
+O `ValorUnitario` histórico é preservado para produtos que já pertenciam ao pedido, inclusive quando sua quantidade é alterada. Produtos adicionados durante a atualização usam o valor atual cadastrado em `Produto`.
+
+### Remover pedido
+
+```http
+DELETE /api/pedidos/{id}
+```
+
+Remove o pedido e seus `ItensPedido`, que são excluídos por cascade. Retorna `204 No Content` quando removido ou `404 Not Found` quando o pedido não existe.
+
 ## Swagger
 
 Em ambiente `Development`, usando o profile HTTP do projeto, o Swagger UI fica disponível em `http://localhost:5008/swagger`.
@@ -246,11 +265,11 @@ Estão implementados:
 
 - `POST /api/pedidos`;
 - `GET /api/pedidos/{id}`;
+- `PUT /api/pedidos/{id}`;
+- `DELETE /api/pedidos/{id}`;
 - frontend Angular em `frontend/pedidos-web` para criação e consulta de pedidos.
 
 Ainda não estão implementados nesta versão:
 
-- PUT de Pedido;
-- DELETE de Pedido;
 - paginação;
 - CRUD de Produto.

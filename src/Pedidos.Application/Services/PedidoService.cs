@@ -23,16 +23,7 @@ public sealed class PedidoService(
 
         var produtos = await produtoRepository.ObterPorIdsAsync(produtosIds, cancellationToken);
         var produtosPorId = produtos.ToDictionary(produto => produto.Id);
-        var produtosInexistentes = produtosIds
-            .Where(id => !produtosPorId.ContainsKey(id))
-            .Order()
-            .ToArray();
-
-        if (produtosInexistentes.Length > 0)
-        {
-            throw new ValidationException(
-                $"Produto(s) não encontrado(s): {string.Join(", ", produtosInexistentes)}.");
-        }
+        ValidarProdutosExistentes(produtosIds, produtosPorId);
 
         var pedido = new Pedido(
             request.NomeCliente,
@@ -66,6 +57,77 @@ public sealed class PedidoService(
         var pedido = await pedidoRepository.ObterPorIdAsync(id, cancellationToken);
 
         return pedido is null ? null : MapearResponse(pedido);
+    }
+
+    public async Task<PedidoResponse?> AtualizarAsync(
+        int id,
+        CriarPedidoRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return null;
+        }
+
+        var pedido = await pedidoRepository.ObterParaAtualizacaoAsync(id, cancellationToken);
+
+        if (pedido is null)
+        {
+            return null;
+        }
+
+        ValidarRequest(request);
+
+        var produtosIds = request.Itens
+            .Select(item => item.ProdutoId)
+            .ToArray();
+        var produtos = await produtoRepository.ObterPorIdsAsync(produtosIds, cancellationToken);
+        var produtosPorId = produtos.ToDictionary(produto => produto.Id);
+        ValidarProdutosExistentes(produtosIds, produtosPorId);
+
+        pedido.AtualizarDados(request.NomeCliente, request.EmailCliente, request.Pago);
+
+        var itensAtuaisPorProdutoId = pedido.ItensPedido
+            .ToDictionary(item => item.ProdutoId);
+        var produtosIdsSolicitados = produtosIds.ToHashSet();
+
+        foreach (var itemAtual in pedido.ItensPedido
+                     .Where(item => !produtosIdsSolicitados.Contains(item.ProdutoId))
+                     .ToArray())
+        {
+            pedido.RemoverItem(itemAtual.Id);
+        }
+
+        foreach (var itemRequest in request.Itens)
+        {
+            if (itensAtuaisPorProdutoId.TryGetValue(itemRequest.ProdutoId, out var itemAtual))
+            {
+                itemAtual.AtualizarQuantidade(itemRequest.Quantidade);
+                continue;
+            }
+
+            var produto = produtosPorId[itemRequest.ProdutoId];
+            pedido.AdicionarItem(produto.Id, itemRequest.Quantidade, produto.Valor);
+        }
+
+        await pedidoRepository.AtualizarAsync(pedido, cancellationToken);
+
+        var pedidoAtualizado = await pedidoRepository.ObterPorIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("Não foi possível carregar o pedido atualizado.");
+
+        return MapearResponse(pedidoAtualizado);
+    }
+
+    public Task<bool> RemoverAsync(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return Task.FromResult(false);
+        }
+
+        return pedidoRepository.RemoverAsync(id, cancellationToken);
     }
 
     private static void ValidarRequest(CriarPedidoRequest request)
@@ -120,6 +182,22 @@ public sealed class PedidoService(
         {
             throw new ValidationException(
                 $"O produto {produtoDuplicado.Key} foi informado mais de uma vez.");
+        }
+    }
+
+    private static void ValidarProdutosExistentes(
+        IReadOnlyCollection<int> produtosIds,
+        IReadOnlyDictionary<int, Produto> produtosPorId)
+    {
+        var produtosInexistentes = produtosIds
+            .Where(id => !produtosPorId.ContainsKey(id))
+            .Order()
+            .ToArray();
+
+        if (produtosInexistentes.Length > 0)
+        {
+            throw new ValidationException(
+                $"Produto(s) não encontrado(s): {string.Join(", ", produtosInexistentes)}.");
         }
     }
 

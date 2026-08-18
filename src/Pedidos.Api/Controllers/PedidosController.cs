@@ -44,4 +44,52 @@ public sealed class PedidosController(IPedidoService pedidoService) : Controller
 
         return Ok(pedido);
     }
+
+    [HttpPut("{id:int}")]
+    [ProducesResponseType<PedidoResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PedidoResponse>> Atualizar(
+        int id,
+        [FromBody] CriarPedidoRequest request,
+        CancellationToken cancellationToken)
+    {
+        var pedido = await pedidoService.AtualizarAsync(id, request, cancellationToken);
+
+        if (pedido is null)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Pedido não encontrado.",
+                Detail = $"Não existe pedido com o identificador {id}."
+            });
+        }
+
+        return Ok(pedido);
+    }
+
+    [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Remover(
+        int id,
+        CancellationToken cancellationToken)
+    {
+        var removido = await pedidoService.RemoverAsync(id, cancellationToken);
+
+        if (!removido)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Pedido não encontrado.",
+                Detail = $"Não existe pedido com o identificador {id}."
+            });
+        }
+
+        return NoContent();
+    }
 }

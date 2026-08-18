@@ -41,4 +41,14 @@ public sealed class ItemPedido
     public Pedido Pedido { get; private set; } = null!;
 
     public Produto Produto { get; private set; } = null!;
+
+    public void AtualizarQuantidade(int quantidade)
+    {
+        if (quantidade <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantidade), "A quantidade deve ser maior que zero.");
+        }
+
+        Quantidade = quantidade;
+    }
 }
