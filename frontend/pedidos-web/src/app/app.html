@@ -1,0 +1,122 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Pedidos API</p>
+    <h1>Gerenciamento de pedidos</h1>
+    <p>Crie um pedido ou consulte um registro existente.</p>
+  </div>
+</header>
+
+<main class="page-content">
+  <section class="card" aria-labelledby="criar-pedido-titulo">
+    <h2 id="criar-pedido-titulo">Criar pedido</h2>
+
+    <form [formGroup]="pedidoForm" (ngSubmit)="criarPedido()" novalidate>
+      <div class="form-grid">
+        <label>
+          Nome do cliente
+          <input type="text" formControlName="nomeCliente" maxlength="60" />
+          @if (campoInvalido('nomeCliente')) {
+            <span class="field-error">Informe o nome do cliente (máximo de 60 caracteres).</span>
+          }
+        </label>
+
+        <label>
+          E-mail do cliente
+          <input type="email" formControlName="emailCliente" maxlength="60" />
+          @if (campoInvalido('emailCliente')) {
+            <span class="field-error">Informe um e-mail válido (máximo de 60 caracteres).</span>
+          }
+        </label>
+      </div>
+
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="pago" />
+        Pedido pago
+      </label>
+
+      <div class="items-header">
+        <h3>Itens</h3>
+        <button class="button button-secondary" type="button" (click)="adicionarItem()">
+          Adicionar item
+        </button>
+      </div>
+
+      <div formArrayName="itens" class="items-list">
+        @for (item of itens.controls; track $index) {
+          <div class="item-row" [formGroupName]="$index">
+            <label>
+              Produto ID
+              <input type="number" min="1" step="1" formControlName="produtoId" />
+              @if (controleItemInvalido($index, 'produtoId')) {
+                <span class="field-error">Informe um ID maior que zero.</span>
+              }
+            </label>
+
+            <label>
+              Quantidade
+              <input type="number" min="1" step="1" formControlName="quantidade" />
+              @if (controleItemInvalido($index, 'quantidade')) {
+                <span class="field-error">Informe uma quantidade maior que zero.</span>
+              }
+            </label>
+
+            <button
+              class="button button-danger"
+              type="button"
+              (click)="removerItem($index)"
+              [disabled]="itens.length === 1"
+              aria-label="Remover item"
+            >
+              Remover
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (mensagemCriacao()) {
+        <div class="message" [class.message-success]="criacaoBemSucedida()" [class.message-error]="!criacaoBemSucedida()">
+          {{ mensagemCriacao() }}
+        </div>
+      }
+
+      <button class="button button-primary" type="submit" [disabled]="criandoPedido()">
+        {{ criandoPedido() ? 'Criando...' : 'Criar pedido' }}
+      </button>
+    </form>
+
+    @if (pedidoCriado(); as pedido) {
+      <div class="result-block">
+        <h3>Pedido criado</h3>
+        <app-pedido-detalhes [pedido]="pedido" />
+      </div>
+    }
+  </section>
+
+  <section class="card" aria-labelledby="consultar-pedido-titulo">
+    <h2 id="consultar-pedido-titulo">Consultar pedido</h2>
+
+    <form [formGroup]="consultaForm" (ngSubmit)="consultarPedido()" class="search-form" novalidate>
+      <label>
+        ID do pedido
+        <input type="number" min="1" step="1" formControlName="id" />
+        @if (consultaForm.controls.id.invalid && consultaForm.controls.id.touched) {
+          <span class="field-error">Informe um ID maior que zero.</span>
+        }
+      </label>
+      <button class="button button-primary" type="submit" [disabled]="consultandoPedido()">
+        {{ consultandoPedido() ? 'Consultando...' : 'Consultar' }}
+      </button>
+    </form>
+
+    @if (mensagemConsulta()) {
+      <div class="message message-error">{{ mensagemConsulta() }}</div>
+    }
+
+    @if (pedidoConsultado(); as pedido) {
+      <div class="result-block">
+        <h3>Resultado</h3>
+        <app-pedido-detalhes [pedido]="pedido" />
+      </div>
+    }
+  </section>
+</main>

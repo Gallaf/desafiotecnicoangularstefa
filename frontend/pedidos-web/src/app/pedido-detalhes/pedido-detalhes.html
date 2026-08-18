@@ -1,0 +1,30 @@
+<dl class="summary">
+  <div><dt>ID</dt><dd>{{ pedido().id }}</dd></div>
+  <div><dt>Cliente</dt><dd>{{ pedido().nomeCliente }}</dd></div>
+  <div><dt>E-mail</dt><dd>{{ pedido().emailCliente }}</dd></div>
+  <div><dt>Pago</dt><dd>{{ pedido().pago ? 'Sim' : 'Não' }}</dd></div>
+  <div><dt>Valor total</dt><dd>{{ pedido().valorTotal | currency: 'BRL' }}</dd></div>
+</dl>
+
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Valor unitário</th>
+        <th>Quantidade</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of pedido().itensPedido; track item.id) {
+        <tr>
+          <td>{{ item.nomeProduto }}</td>
+          <td>{{ item.valorUnitario | currency: 'BRL' }}</td>
+          <td>{{ item.quantidade }}</td>
+          <td>{{ item.valorUnitario * item.quantidade | currency: 'BRL' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

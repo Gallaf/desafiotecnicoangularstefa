@@ -1,0 +1,9 @@
+:host { display: block; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; margin: 0 0 1.25rem; }
+.summary div { background: #f1f5f9; border-radius: 6px; padding: 0.75rem; }
+dt { color: #475569; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
+dd { color: #0f172a; margin: 0.25rem 0 0; overflow-wrap: anywhere; }
+.table-wrapper { overflow-x: auto; }
+table { border-collapse: collapse; min-width: 560px; width: 100%; }
+th, td { border-bottom: 1px solid #e2e8f0; padding: 0.7rem; text-align: left; }
+th { color: #475569; font-size: 0.85rem; }
